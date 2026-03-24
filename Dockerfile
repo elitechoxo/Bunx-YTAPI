@@ -9,9 +9,9 @@ RUN apk add --no-cache \
 
 RUN pip install --no-cache-dir --upgrade yt-dlp[default] --break-system-packages
 
-# fxtun — pre-downloaded binary, no network needed
-COPY bin/fxtun /usr/local/bin/fxtun
-RUN chmod +x /usr/local/bin/fxtun
+# Install fxtun
+RUN curl -fsSL https://fxtun.dev/install.sh | sh && \
+    find / -name "fxtun" -type f 2>/dev/null | head -1 | xargs -I{} ln -sf {} /usr/local/bin/fxtun
 
 ENV PATH="/root/.local/bin:/usr/local/bin:$PATH"
 
