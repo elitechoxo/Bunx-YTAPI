@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>YTDL — Jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/all.css"/>
+<style>
+.job-card{background:var(--sur);border:1px solid var(--b0);border-radius:var(--r3);padding:1rem 1.1rem;margin-bottom:.6rem;transition:all var(--tb);display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:start}
+.job-card:hover{border-color:var(--b1)}
+.job-card.processing{border-left:3px solid var(--ap)}
+.job-card.ready{border-left:3px solid var(--ok)}
+.job-card.error{border-left:3px solid var(--err)}
+.job-title{font-weight:600;font-size:.88rem;color:var(--t0);margin-bottom:.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.job-meta{font-family:var(--fm);font-size:.72rem;color:var(--t2);display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.job-actions{display:flex;gap:.35rem;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.progress-bar{height:2px;background:var(--b1);border-radius:2px;margin-top:.6rem}
+.progress-fill{height:100%;background:var(--ap);border-radius:2px;animation:prog 1.6s ease-in-out infinite alternate}
+@keyframes prog{from{width:15%}to{width:88%}}
+.filters{display:flex;gap:.4rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center}
+.f-btn{font-size:.75rem;padding:.25rem .7rem;border-radius:20px;border:1px solid var(--b1);background:transparent;color:var(--t2);cursor:pointer;transition:all var(--tf);font-family:var(--fm)}
+.f-btn:hover,.f-btn.active{background:var(--ap);color:#fff;border-color:var(--ap)}
+.cnt{font-family:var(--fm);font-size:.67rem;padding:0px 5px;border-radius:9px;background:var(--bg4);color:var(--t2);border:1px solid var(--b0);margin-left:3px}
+.pulse{animation:p2 1.5s ease-in-out infinite}
+@keyframes p2{0%,100%{opacity:1}50%{opacity:.45}}
+.job-url{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t3);font-size:.7rem}
+@media(max-width:540px){
+  .job-card{grid-template-columns:1fr}
+  .job-actions{justify-content:flex-start;margin-top:.4rem}
+  .job-title{font-size:.82rem}
+}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="/" class="brand">
+    <div class="brand-logo">YT</div>
+    <div><div class="brand-name">YTDL</div><div class="brand-meta">Jobs</div></div>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/status" class="nav-link">Status</a>
+    <a href="/progress" class="nav-link active">Jobs</a>
+    <a href="/cookies" class="nav-link">Cookies</a>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-secondary btn-sm" onclick="clearDone()">Clear Done</button>
+    <button class="btn btn-ghost btn-sm" onclick="render()">↻</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div style="padding:.75rem 0 1.25rem">
+    <h2 style="font-size:1.25rem;letter-spacing:-.02em">Download Jobs</h2>
+    <p style="color:var(--t1);font-size:.82rem;margin-top:.2rem">Background yt-dlp processes — live status</p>
+  </div>
+
+  <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="j-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">Processing</div><div class="stat-value ac pulse" id="j-proc">—</div></div>
+    <div class="stat-card"><div class="stat-label">Ready</div><div class="stat-value ok" id="j-ready">—</div></div>
+    <div class="stat-card"><div class="stat-label">Errors</div><div class="stat-value err" id="j-err">—</div></div>
+  </div>
+
+  <div class="filters">
+    <span style="font-size:.75rem;color:var(--t2);font-family:var(--fm)">Filter:</span>
+    <button class="f-btn active" onclick="setF('all',this)">All<span class="cnt" id="fc-all">0</span></button>
+    <button class="f-btn" onclick="setF('processing',this)">Active<span class="cnt" id="fc-proc">0</span></button>
+    <button class="f-btn" onclick="setF('ready',this)">Ready<span class="cnt" id="fc-ready">0</span></button>
+    <button class="f-btn" onclick="setF('error',this)">Error<span class="cnt" id="fc-err">0</span></button>
+  </div>
+
+  <div id="job-list"><div class="empty"><div class="empty-icon">⟳</div>Loading...</div></div>
+</div>
+
+<script src="/static/progress.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "ytdl-api",
+  "version": "2.0.0",
+  "module": "src/index.js",
+  "scripts": {
+    "start": "bun run src/index.js",
+    "dev":   "bun --watch src/index.js"
+  }
+}

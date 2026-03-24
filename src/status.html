@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>YTDL — Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/all.css"/>
+<style>
+.chart-canvas{width:100%;height:130px;display:block}
+.log-time{color:var(--t2);font-family:var(--fm);font-size:.73rem}
+.log-id a{color:var(--ap);text-decoration:none;font-family:var(--fm);font-size:.76rem}
+.log-id a:hover{text-decoration:underline}
+.log-title{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-dur{color:var(--warn);font-family:var(--fm);font-size:.73rem}
+.ep-list{display:flex;flex-direction:column;gap:.35rem}
+.update-log{display:none;margin-top:.5rem;font-size:.7rem;font-family:var(--fm);color:var(--t2);white-space:pre-wrap;max-height:120px;overflow-y:auto;background:var(--bg1);padding:.5rem;border-radius:4px;border:1px solid var(--b0)}
+@media(max-width:600px){.log-title{max-width:100px}.log-time{display:none}}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="/" class="brand">
+    <div class="brand-logo">YT</div>
+    <div><div class="brand-name">YTDL</div><div class="brand-meta">Status</div></div>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/status" class="nav-link active">Status</a>
+    <a href="/progress" class="nav-link">Jobs</a>
+    <a href="/cookies" class="nav-link">Cookies</a>
+  </div>
+  <div class="topbar-right">
+    <div class="status-badge status-online"><span>Online</span></div>
+    <button class="btn btn-secondary btn-sm" onclick="window.location.href='/export'">Export</button>
+    <button id="ytdlp-update-btn" class="btn btn-secondary btn-sm" onclick="updateYtDlp()">Update yt-dlp</button>
+  </div>
+</nav>
+
+<!-- update log — sits just below nav, hidden until triggered -->
+<div class="container" style="padding-top:.75rem;padding-bottom:0">
+  <pre id="ytdlp-update-log" class="update-log"></pre>
+</div>
+
+<div class="container">
+  <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+    <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value ok">Online</div><div class="stat-sub" id="s-uptime">loading...</div></div>
+    <div class="stat-card"><div class="stat-label">Requests</div><div class="stat-value ac" id="s-total">—</div><div class="stat-sub">total</div></div>
+    <div class="stat-card"><div class="stat-label">Success</div><div class="stat-value ok" id="s-rate">—</div><div class="stat-sub" id="s-errors">— errors</div></div>
+    <div class="stat-card"><div class="stat-label">Avg Resp</div><div class="stat-value warn" id="s-avg">—</div><div class="stat-sub">last 20</div></div>
+    <div class="stat-card"><div class="stat-label">Cached</div><div class="stat-value ac" id="s-cache">—</div><div class="stat-sub">5h TTL</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Requests / Hour</span><span class="card-meta" id="chart-meta">24h</span></div>
+      <div class="card-body"><canvas id="hchart" class="chart-canvas"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Uptime</span><span class="card-meta">Last 30</span></div>
+      <div class="uptime-strip" id="ticks"></div>
+      <div style="border-top:1px solid var(--b0);padding:.875rem 1rem">
+        <div class="section-title" style="margin-top:0">Endpoints</div>
+        <div class="ep-list">
+          <div class="ep-item"><span class="method-badge">GET</span><span class="ep-path">/audio</span><span class="ep-desc">5h cache</span></div>
+          <div class="ep-item"><span class="method-badge">GET</span><span class="ep-path">/proxy</span><span class="ep-desc">stream relay</span></div>
+          <div class="ep-item"><span class="method-badge">GET</span><span class="ep-path">/host</span><span class="ep-desc">download & host</span></div>
+          <div class="ep-item"><span class="method-badge">GET</span><span class="ep-path">/api/cache</span><span class="ep-desc">cache mgmt</span></div>
+          <div class="ep-item"><span class="method-badge">GET</span><span class="ep-path">/export</span><span class="ep-desc">data.json</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cache panel -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-header">
+      <span class="card-title">Link Cache</span>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <span class="card-meta"><span id="cache-count">—</span> entries · 5h TTL</span>
+        <button class="btn btn-danger btn-xs" onclick="clearCache()">Clear All</button>
+      </div>
+    </div>
+    <div id="cache-list" style="max-height:260px;overflow-y:auto">
+      <div class="empty"><div class="empty-icon">◎</div>No cached entries</div>
+    </div>
+  </div>
+
+  <!-- Request log -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Request Log</span>
+      <span class="card-meta" id="log-meta">—</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Time</th><th>Video ID</th><th>Title</th><th>Status</th><th>Dur</th></tr></thead>
+        <tbody id="log-body"><tr><td colspan="5" class="empty"><div class="empty-icon">⟳</div>Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/static/status.js"></script>
+</body>
+</html>

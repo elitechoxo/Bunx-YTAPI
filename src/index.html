@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>YTDL — API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/all.css"/>
+<style>
+.hero{padding:2.5rem 0 2rem;border-bottom:1px solid var(--b0)}
+.hero-tag{display:inline-block;font-size:.67rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ap);border:1px solid rgba(107,124,156,.3);padding:2px 10px;border-radius:20px;margin-bottom:1rem;font-family:var(--fm)}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:.6rem}
+.hero h1 span{color:var(--ap)}
+.hero p{color:var(--t1);font-size:.88rem;max-width:480px;line-height:1.7}
+.pills{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
+.pill{font-family:var(--fm);font-size:.67rem;padding:2px 9px;border:1px solid var(--b1);border-radius:20px;color:var(--t2)}
+
+.try-box{background:var(--sur);border:1px solid var(--b1);border-radius:var(--r3);padding:1.25rem;margin:1.5rem 0}
+.try-box label{display:block;font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--t2);font-family:var(--fm);margin-bottom:.6rem}
+.input-row{display:flex;gap:.4rem}
+.input-row input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--b1);color:var(--t0);font-family:var(--fm);font-size:.83rem;padding:.5rem .875rem;border-radius:var(--r2);outline:none;transition:border-color var(--tf)}
+.input-row input:focus{border-color:var(--ap)}
+.input-row input::placeholder{color:var(--t3)}
+.cache-hint{font-size:.7rem;color:var(--t2);font-family:var(--fm);margin-top:.5rem;display:none}
+.cache-hint.show{display:block}
+.res-box{margin-top:.875rem;background:var(--bg);border:1px solid var(--b0);border-radius:var(--r2);padding:.875rem;font-family:var(--fm);font-size:.75rem;line-height:1.8;max-height:240px;overflow-y:auto;display:none;white-space:pre-wrap;word-break:break-all}
+.res-box.show{display:block}.res-box.ok{border-color:var(--ok-b)}.res-box.err{border-color:var(--err-b);color:var(--err)}
+
+.eps{margin-top:2rem}
+.ep{background:var(--sur);border:1px solid var(--b0);border-radius:var(--r3);margin-bottom:.6rem;overflow:hidden;transition:border-color var(--tb)}
+.ep:hover{border-color:var(--b1)}
+.ep-head{display:flex;align-items:center;gap:.6rem;padding:.85rem 1.1rem;flex-wrap:wrap}
+.ep-m{font-family:var(--fm);font-size:.62rem;font-weight:700;padding:1px 7px;letter-spacing:.06em;text-transform:uppercase;border-radius:var(--r1);flex-shrink:0}
+.get{background:rgba(124,156,139,.1);color:var(--ok);border:1px solid var(--ok-b)}
+.ep-path-t{font-family:var(--fm);font-size:.88rem;color:var(--t0);flex:1}
+.ep-d{font-size:.78rem;color:var(--t2)}
+.ep-body{padding:.25rem 1.1rem 1.1rem;border-top:1px solid var(--b0)}
+.code-b{background:var(--bg);border-left:2px solid var(--ap);padding:.7rem .9rem;margin-top:.7rem;font-family:var(--fm);font-size:.73rem;color:var(--t2);overflow-x:auto;white-space:pre;border-radius:0 var(--r1) var(--r1) 0;-webkit-overflow-scrolling:touch}
+.note-b{background:rgba(107,124,156,.05);border:1px solid rgba(107,124,156,.15);padding:.6rem .9rem;margin-top:.7rem;font-size:.78rem;color:var(--t2);border-radius:var(--r2);line-height:1.6}
+.note-b strong{color:var(--ap)}
+.jk{color:#7dd3fc}.js{color:#86efac}.jn{color:#fbbf24}.jb{color:#c084fc}
+
+@media(max-width:480px){
+  .input-row{flex-direction:column}
+  .input-row .btn{width:100%}
+  .ep-head{gap:.4rem}
+  .ep-d{display:none}
+}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="/" class="brand">
+    <div class="brand-logo">YT</div>
+    <div><div class="brand-name">YTDL</div><div class="brand-meta">Audio API</div></div>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link active">Home</a>
+    <a href="/status" class="nav-link">Status</a>
+    <a href="/progress" class="nav-link">Jobs</a>
+    <a href="/cookies" class="nav-link">Cookies</a>
+  </div>
+  <div class="topbar-right">
+    <div class="status-badge status-online">Online</div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="hero">
+    <div class="hero-tag">yt-dlp REST API</div>
+    <h1>Audio <span>Extraction</span> Engine</h1>
+    <p>Fast, no-ffmpeg audio resolution with android_vr client. 5h link cache, stream relay, background hosting.</p>
+    <div class="pills">
+      <span class="pill">android_vr client</span><span class="pill">5h cache</span><span class="pill">no ffmpeg</span>
+      <span class="pill">audio/webm</span><span class="pill">range proxy</span><span class="pill">Bun native</span>
+    </div>
+  </div>
+
+  <div class="try-box">
+    <label>Try /audio</label>
+    <div class="input-row">
+      <input id="qi" placeholder="video id or url — e.g. dQw4w9WgXcQ"/>
+      <button class="btn btn-primary" onclick="go()">Resolve</button>
+    </div>
+    <div class="cache-hint" id="ch"></div>
+    <div class="res-box" id="rb"></div>
+  </div>
+
+  <div class="eps">
+    <div class="section-title">Endpoints</div>
+
+    <div class="ep">
+      <div class="ep-head"><span class="ep-m get">GET</span><span class="ep-path-t">/audio</span><span class="ep-d">extract info + CDN url · 5h cache per video ID</span></div>
+      <div class="ep-body">
+        <div class="code-b">GET /audio?q=dQw4w9WgXcQ
+→ { id, title, uploader, duration, thumbnail, audio_url, proxy_url, host_url, cached, cache_expires }</div>
+        <div class="note-b"><strong>Cache:</strong> resolved links stored 5h in data.json keyed by video ID. Cache hit returns instantly with <code>cached: true</code> and expiry timestamp.</div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head"><span class="ep-m get">GET</span><span class="ep-path-t">/proxy</span><span class="ep-d">stream relay — range-aware, no disk</span></div>
+      <div class="ep-body">
+        <div class="code-b">GET /proxy?q=dQw4w9WgXcQ  →  streams audio/webm (uses cached CDN url if available)</div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head"><span class="ep-m get">GET</span><span class="ep-path-t">/host</span><span class="ep-d">download to disk → permanent URL</span></div>
+      <div class="ep-body">
+        <div class="code-b">GET /host?q=ID         →  202 { status:"processing", job_id, status_url }
+GET /job-status?id=X  →  { status, elapsed, file_url }
+GET /file?id=X        →  audio/webm download</div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head"><span class="ep-m get">GET</span><span class="ep-path-t">/api/cache</span><span class="ep-d">view / manage 5h cache</span></div>
+      <div class="ep-body">
+        <div class="code-b">GET    /api/cache          →  { count, ttl_hours:5, entries[] }
+DELETE /api/cache          →  clear all cache
+DELETE /api/cache/:id      →  evict single entry</div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head"><span class="ep-m get">GET</span><span class="ep-path-t">/stats &amp; /export</span><span class="ep-d">live metrics · download data.json</span></div>
+      <div class="ep-body">
+        <div class="code-b">GET /stats   →  { uptime, total_requests, success_rate, cache_entries, hourly[24], logs[] }
+GET /export  →  full data.json download</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function hl(o){return JSON.stringify(o,null,2).replace(/(\"[\w_]+\"):/g,'<span class="jk">$1</span>:').replace(/: (\".*?\")/g,': <span class="js">$1</span>').replace(/: (\d+\.?\d*)/g,': <span class="jn">$1</span>').replace(/: (true|false|null)/g,': <span class="jb">$1</span>');}
+async function go(){
+  const q=document.getElementById('qi').value.trim();if(!q)return;
+  const btn=event.target,box=document.getElementById('rb'),hint=document.getElementById('ch');
+  btn.disabled=true;btn.textContent='...';
+  box.className='res-box show';box.innerHTML='resolving...';hint.className='cache-hint';
+  try{
+    const r=await fetch('/audio?q='+encodeURIComponent(q));
+    const d=await r.json();box.innerHTML=hl(d);
+    box.className='res-box show '+(r.ok?'ok':'err');
+    if(d.cached){hint.className='cache-hint show';hint.innerHTML='⚡ cache hit — expires '+new Date(d.cache_expires).toLocaleTimeString();}
+    else if(d.cache_expires){hint.className='cache-hint show';hint.innerHTML='💾 cached until '+new Date(d.cache_expires).toLocaleTimeString();}
+  }catch(e){box.className='res-box show err';box.textContent=e.message;}
+  finally{btn.disabled=false;btn.textContent='Resolve';}
+}
+document.getElementById('qi').addEventListener('keydown',e=>e.key==='Enter'&&go());
+</script>
+</body>
+</html>
