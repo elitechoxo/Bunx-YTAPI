@@ -122,15 +122,12 @@ function json(d, s = 200, h={}) { return Response.json(d, { status: s, headers: 
 function err(msg, s = 400)      { return json({ error: msg }, s); }
 function noMethod()             { return err("method not allowed", 405); }
 
-
-
 // ─── yt-dlp subprocess ────────────────────────────────────────────────────────
 export async function runYtDlp(...args) {
-  // auto-inject active cookie if not already specified
   const hasCookies = args.includes("--cookies");
   const cookieArgs = !hasCookies ? (() => {
-    const p = getActivePath();
-    return p ? ["--cookies", p] : [];
+    const cp = getActivePath();
+    return cp ? ["--cookies", cp] : [];
   })() : [];
 
   const proc = Bun.spawn([YTDLP, "--no-warnings", "--no-playlist", ...cookieArgs, ...args], {
@@ -144,12 +141,11 @@ export async function runYtDlp(...args) {
   ]);
   if (code !== 0) {
     const msg = errText.trim() || `yt-dlp exit ${code}`;
-    // detect cookie-related errors → rotate
     if (msg.includes("Sign in") || msg.includes("bot") || msg.includes("429")) {
       const activePath = getActivePath();
       if (activePath) {
         const cookieName = activePath.split("/").pop();
-        console.warn(`[cookies] rotating due to: ${msg.slice(0,60)}`);
+        console.warn(`[cookies] rotating due to: ${msg.slice(0, 60)}`);
         rotateOnError(cookieName);
       }
     }
@@ -159,8 +155,13 @@ export async function runYtDlp(...args) {
 }
 
 async function getAudioInfo(ytUrl) {
-  const raw  = await runYtDlp("-f", "bestaudio", "--dump-json", ytUrl);
-  const info = JSON.parse(raw);
+  const raw = await runYtDlp("-f", "bestaudio", "--dump-json", ytUrl);
+  let info;
+  try {
+    info = JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`yt-dlp bad output: ${raw.slice(0, 100)}`);
+  }
   const allAudio = (info.formats || [])
     .filter(f => f.vcodec === "none" && f.acodec !== "none")
     .map(f => ({ itag: f.format_id, mime_type: `audio/${f.ext}`, abr: f.abr ?? null, url: f.url ?? null }));
@@ -263,6 +264,13 @@ async function handleProxy(req) {
   let up;
   try { up = await fetch(cdnUrl, { headers: upH }); }
   catch (e) { return new Response(`upstream failed: ${e.message}`, { status: 502 }); }
+
+  // CDN url expired — evict cache so next request re-extracts
+  if (up.status === 403 || up.status === 410) {
+    delete DB.cache[id];
+    scheduleSave();
+    return new Response("cdn url expired, retry", { status: 502, headers: CORS });
+  }
 
   const rh = new Headers(CORS);
   rh.set("Content-Type",  up.headers.get("content-type")  || "audio/webm");
@@ -410,7 +418,7 @@ async function handleCookiesUpload(req) {
       return err("invalid format — must be Netscape cookie file");
     const saved = await saveCookie(Buffer.from(text), file.name);
     return json({ ok: true, saved });
-  } catch(e) {
+  } catch (e) {
     return err(e.message, 500);
   }
 }
@@ -419,7 +427,7 @@ async function handleCookieDelete(name) {
   try {
     await deleteCookie(name);
     return json({ ok: true });
-  } catch(e) {
+  } catch (e) {
     return err(e.message, 404);
   }
 }
@@ -481,12 +489,8 @@ Bun.serve({
       if (pathname.startsWith("/api/cookies/")) {
         const name = decodeURIComponent(pathname.slice("/api/cookies/".length));
         if (m === "DELETE") return handleCookieDelete(name);
-        if (m === "GET" && pathname.includes("/test")) {
-          const n = name.replace("/test","");
-          return handleCookieTest(n, req);
-        }
         if (name.endsWith("/test"))
-          return handleCookieTest(name.slice(0,-5), req);
+          return handleCookieTest(name.slice(0, -5), req);
         return noMethod();
       }
 
@@ -522,7 +526,7 @@ Bun.serve({
             proc.exited,
           ]);
           return json({ ok: true, output: (out + errText).trim() });
-        } catch(e) {
+        } catch (e) {
           return json({ ok: false, error: e.message }, 500);
         }
       }
@@ -535,7 +539,6 @@ Bun.serve({
     }
   },
 });
-
 
 // ─── Graceful shutdown ────────────────────────────────────────────────────────
 const shutdown = async (sig) => { console.log(`\n[${sig}] flushing…`); await flushSave(); process.exit(0); };
