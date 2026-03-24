@@ -5,7 +5,7 @@ import {
   initCookies, list as listCookies, getActivePath,
   saveCookie, deleteCookie, testCookie, testAll, testRun,
   rotateOnError,
-} from "./src/static/cookies.mjs";
+} from "./static/cookies.mjs";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const PORT             = parseInt(process.env.PORT)             || 8080;
