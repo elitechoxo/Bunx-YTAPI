@@ -9,6 +9,8 @@ RUN apk add --no-cache \
 
 RUN pip install --no-cache-dir --upgrade yt-dlp[default] --break-system-packages
 
+RUN pip install --no-cache-dir --upgrade ytmusicapi --break-system-packages
+
 # Install fxtun
 RUN curl -fsSL https://fxtun.dev/install.sh | sh && \
     find / -name "fxtun" -type f 2>/dev/null | head -1 | xargs -I{} ln -sf {} /usr/local/bin/fxtun
