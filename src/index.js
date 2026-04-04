@@ -6,13 +6,7 @@ import {
   saveCookie, deleteCookie, testCookie, testAll, testRun,
   rotateOnError,
 } from "./static/cookies.mjs";
-import {
-  ytmHandleSearch, ytmHandleSuggestions, ytmHandleArtist,
-  ytmHandleAlbum, ytmHandleSong, ytmHandleWatch,
-  ytmHandleLyrics, ytmHandleCharts, ytmHandleExplore,
-  ytmHandleMoods, ytmHandlePlaylist, ytmHandleHome,
-  ytmHandleLibrary, initYTMusic
-} from "./ytmusicapi.js";
+
 // ─── Config ───────────────────────────────────────────────────────────────────
 const PORT             = parseInt(process.env.PORT)             || 8080;
 const BASE_URL         = process.env.BASE_URL                   || `http://localhost:${PORT}`;
@@ -499,30 +493,7 @@ Bun.serve({
           return handleCookieTest(name.slice(0, -5), req);
         return noMethod();
       }
-      // ── YTM routes ──
-      if (pathname.startsWith("/api/ytm/")) {
-        const endpoints = {
-          "/api/ytm/search":   ytmHandleSearch,
-          "/api/ytm/suggest":  ytmHandleSuggestions,
-          "/api/ytm/artist":   ytmHandleArtist,
-          "/api/ytm/album":    ytmHandleAlbum,
-          "/api/ytm/song":     ytmHandleSong,
-          "/api/ytm/watch":    ytmHandleWatch,
-          "/api/ytm/lyrics":   ytmHandleLyrics,
-          "/api/ytm/charts":   ytmHandleCharts,
-          "/api/ytm/explore":  ytmHandleExplore,
-          "/api/ytm/moods":    ytmHandleMoods,
-          "/api/ytm/playlist": ytmHandlePlaylist,
-          "/api/ytm/home":     ytmHandleHome,
-          "/api/ytm/library":  ytmHandleLibrary,
-        };
-
-        const handler = endpoints[pathname];
-        if (handler) {
-          if (m === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
-          return handler(req);
-        }
-      }
+      
 
       // ── jobs / cache routes ──
       if (pathname === "/api/jobs") {
